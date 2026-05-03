@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COMPNOR / ISB — Imperial Personnel Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;700;900&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════ TOKENS ═══════════════════════════════ */
+:root {
+  --cream:    #f4efe6;
+  --parch:    #ece3cb;
+  --parch2:   #dfd4b8;
+  --tan:      #c4b38e;
+  --gold:     #b8962e;
+  --goldb:    #d4a82a;
+  --amber:    #e8c84a;
+  --amberd:   #c09820;
+  --dktan:    #9e8860;
+  --ink:      #0e0c09;
+  --inkm:     #1a1610;
+  --inkl:     #28201a;
+  --char:     #3a3028;
+  --red:      #8b1a1a;
+  --redb:     #a82020;
+  --redg:     rgba(139,26,26,0.13);
+  --gl:       rgba(184,150,46,0.2);
+  --threat-critical: #c0392b;
+  --threat-high:     #c0692b;
+  --threat-med:      #b8962e;
+  --threat-low:      #6a9a5a;
+  --threat-none:     #4a6a4a;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--ink);
+  color: var(--cream);
+  font-family: 'Barlow Condensed', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(0,0,0,0.018) 2px, rgba(0,0,0,0.018) 3px);
+  pointer-events: none; z-index: 999;
+}
+
+/* ═══════════════════════════════ HEADER ═══════════════════════════════ */
+.hdr {
+  background: var(--cream);
+  position: relative; overflow: hidden;
+  border-bottom: 4px solid transparent;
+  border-image: linear-gradient(90deg, var(--red), var(--gold) 30%, var(--amber) 50%, var(--gold) 70%, var(--red)) 1;
+}
+.hdr::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(0,0,0,0.025) 18px, rgba(0,0,0,0.025) 19px),
+    repeating-linear-gradient(90deg, transparent, transparent 38px, rgba(0,0,0,0.012) 38px, rgba(0,0,0,0.012) 39px);
+  pointer-events: none;
+}
+.hdr-in {
+  max-width: 1600px; margin: 0 auto;
+  display: grid; grid-template-columns: 96px 1fr 96px;
+  align-items: center; padding: 1rem 2.5rem; gap: 1rem;
+  position: relative;
+}
+/* SVG Emblem */
+.emb { width: 86px; height: 86px; display: block; }
+.hdr-c { text-align: center; }
+.eyebrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.56rem; letter-spacing: 0.42em;
+  color: var(--red); text-transform: uppercase; margin-bottom: 0.15rem;
+}
+.htitle {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.9rem; font-weight: 900; color: var(--ink);
+  letter-spacing: 0.15em; line-height: 1;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
+}
+.hline {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 0.3rem auto; width: 50%;
+}
+.hsub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem; font-weight: 300;
+  letter-spacing: 0.36em; color: var(--inkl); text-transform: uppercase;
+}
+.hdr-r {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.56rem; color: var(--char);
+  line-height: 2.1; letter-spacing: 0.06em; text-align: right;
+}
+.hdr-r .hi { color: var(--red); font-weight: bold; }
+
+/* ═══════════════════════════════ TICKER ═══════════════════════════════ */
+.ticker-wrap {
+  background: var(--inkm);
+  border-bottom: 2px solid var(--gold);
+  overflow: hidden; white-space: nowrap; padding: 0.32rem 0;
+}
+.ticker-track {
+  display: inline-block;
+  animation: ticker 70s linear infinite;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.15em; color: var(--amber);
+}
+@keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+/* ═══════════════════════════════ STATUS BAR ═══════════════════════════ */
+.sbar {
+  background: var(--parch);
+  border-bottom: 2px solid var(--tan);
+  padding: 0.4rem 2.5rem;
+  display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 0.5rem;
+}
+.sbi {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.17em;
+  color: var(--char); text-transform: uppercase;
+  display: flex; align-items: center; gap: 0.42rem;
+}
+.pdot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--goldb); flex-shrink: 0;
+  animation: pdot 2.4s ease-in-out infinite;
+}
+.pdot.r { background: var(--red); animation-delay: 0.7s; }
+@keyframes pdot { 0%,100% { opacity:1; box-shadow: 0 0 5px currentColor; } 50% { opacity:.18; box-shadow:none; } }
+
+/* ═══════════════════════════════ NAV TABS ═══════════════════════════════ */
+.nav-wrap {
+  background: var(--inkm);
+  border-bottom: 2px solid var(--gold);
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: thin; scrollbar-color: var(--gold) transparent;
+  position: sticky; top: 0; z-index: 50;
+}
+.nav-inner { display: flex; min-width: max-content; padding: 0 2rem; }
+.nav-btn {
+  background: transparent; border: none;
+  border-bottom: 3px solid transparent;
+  border-right: 1px solid rgba(184,150,46,0.12);
+  color: var(--tan);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.54rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 0.8rem 1.4rem 0.65rem;
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.18s;
+}
+.nav-btn:hover { color: var(--amber); background: rgba(184,150,46,0.055); }
+.nav-btn.active {
+  color: var(--amber);
+  border-bottom-color: var(--goldb);
+  background: rgba(184,150,46,0.09);
+}
+.nav-btn .nc {
+  display: inline-block;
+  background: rgba(184,150,46,0.13);
+  border: 1px solid rgba(184,150,46,0.26);
+  border-radius: 2px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem; padding: 0.02rem 0.28rem;
+  margin-left: 0.36rem; color: var(--gold);
+  vertical-align: middle;
+}
+.nav-btn.active .nc { color: var(--amber); }
+
+/* ═══════════════════════════════ SEARCH / FILTER BAR ═══════════════════ */
+.toolbar {
+  max-width: 1600px; margin: 1rem auto 0.5rem;
+  padding: 0 2rem;
+  display: flex; gap: 0.7rem; flex-wrap: wrap; align-items: center;
+}
+.sw { position: relative; flex: 1 1 220px; }
+.sw-icon {
+  position: absolute; left: 0.7rem; top: 50%;
+  transform: translateY(-50%);
+  color: var(--tan); font-size: 1rem; pointer-events: none;
+}
+input[type=text], select {
+  background: rgba(244,239,230,0.055);
+  border: 1px solid rgba(184,150,46,0.4);
+  color: var(--cream);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.07em;
+  padding: 0.5rem 0.75rem 0.5rem 2rem;
+  width: 100%; outline: none;
+  transition: border-color .18s, background .18s, box-shadow .18s;
+  -webkit-appearance: none; appearance: none;
+}
+select { padding-left: 0.75rem; cursor: pointer; }
+input:focus, select:focus {
+  border-color: var(--amber);
+  background: rgba(244,239,230,0.09);
+  box-shadow: 0 0 10px rgba(184,150,46,0.1);
+}
+input::placeholder { color: var(--dktan); opacity: 0.75; }
+.fl { display: flex; align-items: center; gap: 0.5rem; }
+.fl-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.57rem; letter-spacing: 0.2em;
+  color: var(--tan); white-space: nowrap; text-transform: uppercase;
+}
+select.fsel { width: 170px; }
+select.fval { width: 190px; }
+
+/* ═══════════════════════════════ STAT CARDS ═══════════════════════════ */
+.statrow {
+  max-width: 1600px; margin: 0.5rem auto 0.9rem;
+  padding: 0 2rem;
+  display: flex; gap: 0.7rem; flex-wrap: wrap;
+}
+.sc {
+  background: rgba(244,239,230,0.038);
+  border: 1px solid var(--gl); border-left: 3px solid var(--gold);
+  padding: 0.42rem 0.9rem;
+}
+.sc-l {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem; letter-spacing: 0.22em;
+  color: var(--tan); text-transform: uppercase;
+}
+.sc-v {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.15rem; font-weight: 700; color: var(--amber); line-height: 1.2;
+}
+.sc-v.red { color: var(--redb); }
+
+/* ═══════════════════════════════ TABLE ═══════════════════════════════ */
+.content {
+  max-width: 1600px; margin: 0 auto;
+  padding: 0 2rem 4rem;
+}
+.panel { display: none; }
+.panel.active { display: block; }
+
+.tscroll { overflow-x: auto; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.88rem;
+}
+thead { position: sticky; top: 43px; z-index: 10; }
+th {
+  background: var(--cream); color: var(--ink);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.53rem; font-weight: 700;
+  letter-spacing: 0.17em; text-transform: uppercase;
+  padding: 0.72rem 0.9rem;
+  text-align: left;
+  border-bottom: 3px solid var(--gold);
+  border-right: 1px solid var(--tan);
+  white-space: nowrap; cursor: pointer; user-select: none;
+  transition: background 0.15s;
+}
+th:last-child { border-right: none; }
+th:hover { background: var(--parch2); }
+th::after { content: ' ⇅'; opacity: 0.2; font-size: 0.48rem; }
+th.sa::after { content: ' ↑'; opacity: 1; color: var(--gold); }
+th.sd::after { content: ' ↓'; opacity: 1; color: var(--gold); }
+
+tbody tr {
+  border-bottom: 1px solid rgba(184,150,46,0.1);
+  transition: background 0.1s;
+  animation: rIn 0.22s ease both;
+}
+tbody tr:nth-child(even) { background: rgba(244,239,230,0.02); }
+tbody tr:hover { background: rgba(184,150,46,0.065); cursor: pointer; }
+tbody tr.flagged { border-left: 3px solid var(--red); }
+@keyframes rIn { from { opacity:0; transform: translateX(-5px); } to { opacity:1; transform: none; } }
+
+td {
+  padding: 0.58rem 0.9rem;
+  color: var(--cream);
+  border-right: 1px solid rgba(184,150,46,0.07);
+  vertical-align: middle; white-space: nowrap;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.9rem;
+}
+td:last-child { border-right: none; }
+td.wrap { white-space: normal; max-width: 320px; font-size: 0.82rem; line-height: 1.4; }
+
+/* Cell type styling */
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.48rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.07em;
+  border-radius: 1px; white-space: nowrap;
+}
+.badge-rank  { background: rgba(184,150,46,0.12); border: 1px solid rgba(184,150,46,0.35); color: var(--amber); }
+.badge-role  { background: rgba(244,239,230,0.07); border: 1px solid rgba(244,239,230,0.15); color: var(--cream); }
+.badge-elem  { background: rgba(100,140,200,0.1); border: 1px solid rgba(100,140,200,0.25); color: #9ab8e0; }
+.badge-redacted { background: rgba(139,26,26,0.18); border: 1px solid rgba(139,26,26,0.4); color: #c07070; letter-spacing: 0.15em; }
+.badge-file  { background: rgba(184,150,46,0.08); border: 1px solid rgba(184,150,46,0.22); color: var(--amberd); font-size: 0.6rem; }
+.badge-clear { background: rgba(80,120,80,0.13); border: 1px solid rgba(80,120,80,0.3); color: #90c090; }
+
+.perf {
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.perf-pip {
+  width: 8px; height: 8px; border-radius: 1px;
+  background: rgba(184,150,46,0.2); border: 1px solid rgba(184,150,46,0.25);
+}
+.perf-pip.on { background: var(--amber); border-color: var(--amber); }
+
+.act-bar {
+  display: inline-block;
+  height: 6px; min-width: 40px; width: var(--w,50%);
+  background: linear-gradient(90deg, var(--goldb), var(--amber));
+  border-radius: 1px; vertical-align: middle;
+  position: relative;
+}
+
+.sdot {
+  display: inline-flex; align-items: center; gap: 0.38rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.09em;
+}
+.sdot::before {
+  content: ''; width: 6px; height: 6px;
+  border-radius: 50%; flex-shrink: 0; display: inline-block;
+}
+.s-active  { color: var(--amber); }
+.s-active::before  { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
+.s-reserve { color: var(--tan); }
+.s-reserve::before { background: var(--tan); }
+.s-loa     { color: #9ab8e0; }
+.s-loa::before     { background: #9ab8e0; }
+.s-mia     { color: #c07070; }
+.s-mia::before     { background: #c07070; }
+.s-kia     { color: var(--redb); }
+.s-kia::before     { background: var(--redb); box-shadow: 0 0 4px var(--redb); }
+.s-inactive{ color: var(--dktan); }
+.s-inactive::before{ background: var(--dktan); }
+
+/* Threat levels */
+.threat {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.1em;
+  padding: 0.1rem 0.5rem; border-radius: 1px;
+  font-weight: bold;
+}
+.t-critical { background: rgba(192,57,43,0.2); border: 1px solid rgba(192,57,43,0.5); color: #e05050; }
+.t-high     { background: rgba(192,105,43,0.2); border: 1px solid rgba(192,105,43,0.5); color: #e08050; }
+.t-medium   { background: rgba(184,150,46,0.18); border: 1px solid rgba(184,150,46,0.4); color: var(--amber); }
+.t-low      { background: rgba(106,154,90,0.15); border: 1px solid rgba(106,154,90,0.35); color: #90c080; }
+.t-none     { background: rgba(74,106,74,0.12); border: 1px solid rgba(74,106,74,0.3); color: #70a070; }
+.t-unknown  { background: rgba(100,100,100,0.12); border: 1px solid rgba(100,100,100,0.28); color: #909090; }
+
+/* Eligible */
+.elig-yes { color: var(--amber); font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; }
+.elig-no  { color: var(--dktan); font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; }
+
+/* Strikes */
+.strike-wrap { display: inline-flex; gap: 3px; align-items: center; }
+.strike-pip {
+  width: 9px; height: 9px; border-radius: 1px;
+  background: rgba(139,26,26,0.15); border: 1px solid rgba(139,26,26,0.25);
+}
+.strike-pip.on { background: var(--redb); border-color: var(--redb); box-shadow: 0 0 3px rgba(168,32,32,0.4); }
+
+/* Laws tab */
+.charge-code {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.12em;
+  color: var(--amber); padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(184,150,46,0.3);
+  background: rgba(184,150,46,0.07);
+}
+.priority-wrap { display: inline-flex; align-items: center; gap: 0.3rem; }
+.pri-dot { width: 8px; height: 8px; border-radius: 50%; }
+.pri-1 { background: var(--redb); box-shadow: 0 0 4px var(--redb); }
+.pri-2 { background: #c07030; }
+.pri-3 { background: var(--amber); }
+.pri-4 { background: var(--tan); }
+.pri-5 { background: var(--dktan); }
+
+/* Loading / error / empty */
+.loading-wrap {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 5rem 2rem; gap: 1.2rem;
+}
+.lcog { width: 52px; height: 52px; opacity: 0.38; animation: spin 5s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.lmsg {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.28em;
+  color: var(--tan); text-transform: uppercase;
+  animation: blink 1.1s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+.lbar { width: 260px; height: 2px; background: rgba(184,150,46,0.15); }
+.lfill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--amber)); animation: lf 2s ease-in-out infinite; }
+@keyframes lf { 0%{width:0%;opacity:1;} 70%{width:90%;opacity:1;} 90%{width:100%;opacity:0;} 100%{width:0%;opacity:0;} }
+
+.err-box {
+  margin: 2rem 0; padding: 1.4rem 1.8rem;
+  border: 1px solid var(--red); border-left: 4px solid var(--red);
+  background: var(--redg);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem; color: #c07070; line-height: 2; letter-spacing: 0.05em;
+}
+.err-box strong { color: var(--redb); display: block; margin-bottom: 0.4rem; font-size: 0.75rem; }
+.err-box a { color: var(--amber); }
+
+.empty {
+  text-align: center; padding: 3.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.25em;
+  color: var(--tan); text-transform: uppercase;
+}
+
+/* Row detail drawer */
+.drawer-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(10,8,5,0.75);
+  z-index: 200; display: none;
+  animation: fadein 0.18s ease;
+}
+.drawer-backdrop.open { display: block; }
+@keyframes fadein { from{opacity:0;} to{opacity:1;} }
+.drawer {
+  position: fixed; top: 0; right: -520px; bottom: 0;
+  width: 500px; max-width: 95vw;
+  background: var(--inkm);
+  border-left: 2px solid var(--gold);
+  z-index: 201;
+  overflow-y: auto;
+  transition: right 0.25s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+}
+.drawer.open { right: 0; }
+.drawer-head {
+  background: var(--cream);
+  border-bottom: 3px solid var(--gold);
+  padding: 1rem 1.4rem 0.9rem;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  flex-shrink: 0;
+}
+.drawer-head .dh-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.2em; color: var(--ink); text-transform: uppercase;
+}
+.drawer-head .dh-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 0.15em;
+  color: var(--char); margin-top: 0.2rem;
+}
+.drawer-close {
+  background: none; border: none; cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem; color: var(--char);
+  padding: 0 0.3rem; line-height: 1;
+  transition: color 0.15s;
+}
+.drawer-close:hover { color: var(--red); }
+.drawer-body { padding: 1.4rem; flex: 1; }
+.drawer-section {
+  margin-bottom: 1.4rem;
+}
+.drawer-section-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.52rem; font-weight: 700;
+  letter-spacing: 0.22em; color: var(--gold);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--gl);
+  padding-bottom: 0.3rem; margin-bottom: 0.7rem;
+}
+.drawer-field {
+  display: grid; grid-template-columns: 130px 1fr;
+  gap: 0.3rem 0.7rem; margin-bottom: 0.45rem;
+  align-items: start;
+}
+.df-key {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.12em;
+  color: var(--tan); text-transform: uppercase;
+  padding-top: 0.05rem;
+}
+.df-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.92rem; color: var(--cream);
+  word-break: break-word; white-space: normal;
+}
+.df-val.mono {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.06em;
+}
+.df-val.notes {
+  font-size: 0.85rem; line-height: 1.5;
+  color: var(--parch); font-style: italic;
+}
+
+/* FOOTER */
+footer {
+  background: var(--cream);
+  border-top: 3px solid var(--gold);
+  padding: 0.8rem 2.5rem;
+  display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 0.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.51rem; letter-spacing: 0.2em; color: var(--char);
+}
+.fl-logo { font-family: 'Orbitron', sans-serif; font-size: 0.62rem; font-weight: 700; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="hdr">
+  <div class="hdr-in">
+    <!-- Emblem -->
+    <svg class="emb" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="#1a1510" stroke-width="0.8" stroke-dasharray="2.8 2.2"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#1a1510" stroke-width="0.5"/>
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#1a1510" stroke-width="2.2"/>
+      <circle cx="50" cy="50" r="9"  fill="#1a1510"/>
+      <circle cx="50" cy="50" r="4.5" fill="#f4efe6"/>
+      <g fill="#1a1510">
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(22.5 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(45 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(67.5 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(90 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(112.5 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(135 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(157.5 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(180 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(202.5 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(225 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(247.5 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(270 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(292.5 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(315 50 50)"/>
+        <rect x="47.5" y="10" width="5" height="10.5" rx="0.8" transform="rotate(337.5 50 50)"/>
+      </g>
+      <circle cx="50" cy="50" r="19" fill="none" stroke="#1a1510" stroke-width="0.8" stroke-dasharray="1.8 2.8"/>
+    </svg>
+
+    <div class="hdr-c">
+      <div class="eyebrow">⬛ IMPERIAL SECURITY BUREAU — CLASSIFIED — ALPHA RED CLEARANCE REQUIRED ⬛</div>
+      <div class="htitle">COMPNOR / ISB</div>
+      <div class="hline"></div>
+      <div class="hsub">Committee for the Preservation of the New Order — Personnel & Intelligence Database</div>
+    </div>
+
+    <div class="hdr-r">
+      <div>SECTOR: <span class="hi">CLASSIFIED</span></div>
+      <div>CLEARANCE: <span class="hi">α-RED</span></div>
+      <div>TERMINAL: ISB-0044-C</div>
+      <div>NET: CORUSCANT MAINFRAME</div>
+      <div id="liveclock">——:——:——</div>
+      <div id="livedate">——·——·——</div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ TICKER ═══ -->
+<div class="ticker-wrap">
+  <span class="ticker-track">
+    ◆ ALL PERSONNEL SUBJECT TO CONTINUOUS LOYALTY ASSESSMENT ◆ REPORT SUSPICIOUS CONDUCT IMMEDIATELY TO YOUR NEAREST ISB LIAISON ◆ THE EMPIRE ENDURES THROUGH VIGILANCE AND DISCIPLINE ◆ UNAUTHORIZED ACCESS TO THIS TERMINAL IS A CAPITAL OFFENSE — IMPERIAL DECREE 7.4.2 ◆ COMPNOR MANDATE: LOYALTY IS STRENGTH — DOUBT IS TREASON ◆ SECTOR COMPLIANCE INDEX: 94.7% ◆ LONG LIVE THE EMPEROR ◆ ALL DUTY ROSTERS SUBJECT TO IMPERIAL AUDIT WITHOUT NOTICE ◆ CORUSCANT DATALINK NOMINAL ◆ HVI WATCHLIST UPDATED ◆ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  </span>
+</div>
+
+<!-- ═══ STATUS BAR ═══ -->
+<div class="sbar">
+  <div class="sbi"><div class="pdot"></div> DATALINK: CORUSCANT MAINFRAME ACTIVE</div>
+  <div class="sbi">MANIFEST: ISB-ROS-<span id="manifest">——</span></div>
+  <div class="sbi"><div class="pdot r"></div> CLASSIFICATION: ALPHA RED</div>
+  <div class="sbi">SYNC: <span id="synctime">——</span></div>
+  <div class="sbi">PERSONNEL ON FILE: <span id="total-count">—</span></div>
+</div>
+
+<!-- ═══ NAV TABS ═══ -->
+<nav class="nav-wrap">
+  <div class="nav-inner" id="nav-inner">
+    <button class="nav-btn active" data-tab="isb">ISB ROSTER <span class="nc" id="nc-isb">—</span></button>
+    <button class="nav-btn" data-tab="dt">DEATH TROOPERS <span class="nc" id="nc-dt">—</span></button>
+    <button class="nav-btn" data-tab="inferno">INFERNO SQUAD <span class="nc" id="nc-inferno">—</span></button>
+    <button class="nav-btn" data-tab="declas">DECLASSIFIED FILES <span class="nc" id="nc-declas">—</span></button>
+    <button class="nav-btn" data-tab="hvi">HVI DATABASE <span class="nc" id="nc-hvi">—</span></button>
+    <button class="nav-btn" data-tab="laws">IMPERIAL LAW <span class="nc" id="nc-laws">—</span></button>
+  </div>
+</nav>
+
+<!-- ═══ TOOLBAR ═══ -->
+<div class="toolbar">
+  <div class="sw">
+    <span class="sw-icon">⌕</span>
+    <input type="text" id="search" placeholder="SEARCH CURRENT REGISTER...">
+  </div>
+  <div class="fl">
+    <span class="fl-lbl">Filter:</span>
+    <select id="fsel" class="fsel"><option value="">— ALL COLUMNS —</option></select>
+    <select id="fval" class="fval"><option value="">— ALL VALUES —</option></select>
+  </div>
+</div>
+
+<!-- ═══ STAT CARDS ═══ -->
+<div class="statrow" id="statrow">
+  <div class="sc"><div class="sc-l">Total Records</div><div class="sc-v" id="st-total">—</div></div>
+  <div class="sc"><div class="sc-l">Displayed</div><div class="sc-v" id="st-shown">—</div></div>
+  <!-- extra stats injected per tab -->
+</div>
+
+<!-- ═══ CONTENT PANELS ═══ -->
+<div class="content">
+
+  <!-- ISB ROSTER -->
+  <div class="panel active" id="panel-isb">
+    <div class="loading-wrap" id="load-isb">
+      <svg class="lcog" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#b8962e" stroke-width="2.5"/><circle cx="50" cy="50" r="9" fill="#b8962e"/><g fill="#b8962e"><rect x="47.5" y="12" width="5" height="10" rx="1"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(45 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(90 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(135 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(180 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(225 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(270 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(315 50 50)"/></g></svg>
+      <div class="lmsg">▶ ACCESSING ISB PERSONNEL RECORDS...</div>
+      <div class="lbar"><div class="lfill"></div></div>
+    </div>
+    <div id="err-isb"></div>
+    <div class="tscroll" id="tscroll-isb" style="display:none">
+      <table><thead id="thead-isb"></thead><tbody id="tbody-isb"></tbody></table>
+    </div>
+    <div class="empty" id="empty-isb" style="display:none">⬛ NO RECORDS MATCH CURRENT FILTER PARAMETERS ⬛</div>
+  </div>
+
+  <!-- DT -->
+  <div class="panel" id="panel-dt">
+    <div class="loading-wrap" id="load-dt">
+      <svg class="lcog" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#b8962e" stroke-width="2.5"/><circle cx="50" cy="50" r="9" fill="#b8962e"/><g fill="#b8962e"><rect x="47.5" y="12" width="5" height="10" rx="1"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(45 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(90 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(135 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(180 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(225 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(270 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(315 50 50)"/></g></svg>
+      <div class="lmsg">▶ ACCESSING DT UNIT RECORDS...</div>
+      <div class="lbar"><div class="lfill"></div></div>
+    </div>
+    <div id="err-dt"></div>
+    <div class="tscroll" id="tscroll-dt" style="display:none">
+      <table><thead id="thead-dt"></thead><tbody id="tbody-dt"></tbody></table>
+    </div>
+    <div class="empty" id="empty-dt" style="display:none">⬛ NO RECORDS MATCH CURRENT FILTER PARAMETERS ⬛</div>
+  </div>
+
+  <!-- INFERNO -->
+  <div class="panel" id="panel-inferno">
+    <div class="loading-wrap" id="load-inferno">
+      <svg class="lcog" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#b8962e" stroke-width="2.5"/><circle cx="50" cy="50" r="9" fill="#b8962e"/><g fill="#b8962e"><rect x="47.5" y="12" width="5" height="10" rx="1"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(45 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(90 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(135 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(180 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(225 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(270 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(315 50 50)"/></g></svg>
+      <div class="lmsg">▶ ACCESSING INFERNO SQUAD RECORDS...</div>
+      <div class="lbar"><div class="lfill"></div></div>
+    </div>
+    <div id="err-inferno"></div>
+    <div class="tscroll" id="tscroll-inferno" style="display:none">
+      <table><thead id="thead-inferno"></thead><tbody id="tbody-inferno"></tbody></table>
+    </div>
+    <div class="empty" id="empty-inferno" style="display:none">⬛ NO RECORDS MATCH CURRENT FILTER PARAMETERS ⬛</div>
+  </div>
+
+  <!-- DECLASSIFIED FILES -->
+  <div class="panel" id="panel-declas">
+    <div class="loading-wrap" id="load-declas">
+      <svg class="lcog" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#b8962e" stroke-width="2.5"/><circle cx="50" cy="50" r="9" fill="#b8962e"/><g fill="#b8962e"><rect x="47.5" y="12" width="5" height="10" rx="1"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(45 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(90 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(135 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(180 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(225 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(270 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(315 50 50)"/></g></svg>
+      <div class="lmsg">▶ DECRYPTING FILE REGISTRY...</div>
+      <div class="lbar"><div class="lfill"></div></div>
+    </div>
+    <div id="err-declas"></div>
+    <div class="tscroll" id="tscroll-declas" style="display:none">
+      <table><thead id="thead-declas"></thead><tbody id="tbody-declas"></tbody></table>
+    </div>
+    <div class="empty" id="empty-declas" style="display:none">⬛ NO RECORDS MATCH CURRENT FILTER PARAMETERS ⬛</div>
+  </div>
+
+  <!-- HVI DATABASE -->
+  <div class="panel" id="panel-hvi">
+    <div class="loading-wrap" id="load-hvi">
+      <svg class="lcog" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#b8962e" stroke-width="2.5"/><circle cx="50" cy="50" r="9" fill="#b8962e"/><g fill="#b8962e"><rect x="47.5" y="12" width="5" height="10" rx="1"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(45 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(90 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(135 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(180 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(225 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(270 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(315 50 50)"/></g></svg>
+      <div class="lmsg">▶ ACCESSING HVI WATCHLIST...</div>
+      <div class="lbar"><div class="lfill"></div></div>
+    </div>
+    <div id="err-hvi"></div>
+    <div class="tscroll" id="tscroll-hvi" style="display:none">
+      <table><thead id="thead-hvi"></thead><tbody id="tbody-hvi"></tbody></table>
+    </div>
+    <div class="empty" id="empty-hvi" style="display:none">⬛ NO RECORDS MATCH CURRENT FILTER PARAMETERS ⬛</div>
+  </div>
+
+  <!-- LAWS -->
+  <div class="panel" id="panel-laws">
+    <div class="loading-wrap" id="load-laws">
+      <svg class="lcog" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#b8962e" stroke-width="2.5"/><circle cx="50" cy="50" r="9" fill="#b8962e"/><g fill="#b8962e"><rect x="47.5" y="12" width="5" height="10" rx="1"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(45 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(90 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(135 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(180 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(225 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(270 50 50)"/><rect x="47.5" y="12" width="5" height="10" rx="1" transform="rotate(315 50 50)"/></g></svg>
+      <div class="lmsg">▶ LOADING IMPERIAL LEGAL CODE...</div>
+      <div class="lbar"><div class="lfill"></div></div>
+    </div>
+    <div id="err-laws"></div>
+    <div class="tscroll" id="tscroll-laws" style="display:none">
+      <table><thead id="thead-laws"></thead><tbody id="tbody-laws"></tbody></table>
+    </div>
+    <div class="empty" id="empty-laws" style="display:none">⬛ NO RECORDS MATCH CURRENT FILTER PARAMETERS ⬛</div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- ═══ ROW DETAIL DRAWER ═══ -->
+<div class="drawer-backdrop" id="backdrop"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div>
+      <div class="dh-title" id="dh-title">PERSONNEL FILE</div>
+      <div class="dh-sub" id="dh-sub">ISB-CLASSIFIED</div>
+    </div>
+    <button class="drawer-close" id="drawer-close">✕</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <span class="fl-logo">COMPNOR / ISB</span>
+  <span>IMPERIAL SECURITY BUREAU — PERSONNEL & INTELLIGENCE DATABASE — ALL RECORDS CLASSIFIED</span>
+  <span>UNAUTHORIZED DISCLOSURE PUNISHABLE UNDER IMPERIAL DECREE 7.4.2</span>
+  <span>⬛ CLASSIFIED ⬛</span>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIG — sheet GIDs mapped to tab IDs
+══════════════════════════════════════════════════════════════ */
+const BASE  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTv88IN-v92WW2j7wj-cw0IQaBP2SGJ5sflzNoGWQXR_7ruhtjhm4tDobv1pGiOu6AgSg44Q_O8MIOk/pub';
+const PROXY = 'https://corsproxy.io/?';
+
+// Map each logical tab to the GID that holds its data
+// Public DT Roster MKI = 1598042795 (first tab listed)
+// Adjust GIDs if needed once you verify which is which
+const TABS = {
+  isb:    { gid: '536370166',  label: 'ISB ROSTER'          },
+  dt:     { gid: '1598042795', label: 'DEATH TROOPER ROSTER' },
+  inferno:{ gid: '2037595557', label: 'INFERNO SQUAD'        },
+  declas: { gid: '1165598807', label: 'DECLASSIFIED FILES'   },
+  hvi:    { gid: '161641081',  label: 'HVI DATABASE'         },
+  laws:   { gid: '682505703',  label: 'IMPERIAL LAW'         },
+};
+
+// Column-name → display renderer map per tab
+// Keys are lowercase partial matches against the actual header text
+const RENDERERS = {
+  rank:        renderRank,
+  role:        renderRole,
+  element:     renderElement,
+  elem:        renderElement,
+  performance: renderPerf,
+  perf:        renderPerf,
+  activity:    renderActivity,
+  act:         renderActivity,
+  eligible:    renderEligible,
+  elig:        renderEligible,
+  strike:      renderStrikes,
+  status:      renderStatus,
+  threat:      renderThreat,
+  clearance:   renderClearance,
+  redacted:    renderRedacted,
+  priority:    renderPriority,
+  code:        renderCode,
+  charge:      renderCode,
+  loa:         renderStatus,
+  notes:       renderNotes,
+  definition:  renderNotes,
+  'data packet': renderNotes,
+  punishment:  renderNotes,
+};
+
+/* ══════════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════════ */
+const state = {
+  activeTab: 'isb',
+  data: {},   // tabId -> { headers, rows, sortCol, sortDir, status }
+};
+
+Object.keys(TABS).forEach(id => {
+  state.data[id] = { headers: [], rows: [], filtered: [], sortCol: -1, sortDir: 1, status: 'pending' };
+});
+
+/* ══════════════════════════════════════════════════════════════
+   CLOCK
+══════════════════════════════════════════════════════════════ */
+(function clock() {
+  const pad = n => String(n).padStart(2,'0');
+  const n = new Date();
+  document.getElementById('liveclock').textContent =
+    `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+  document.getElementById('livedate').textContent =
+    `${pad(n.getDate())}·${pad(n.getMonth()+1)}·${String(n.getFullYear()).slice(2)}`;
+  setTimeout(clock, 1000);
+})();
+document.getElementById('manifest').textContent  = Math.random().toString(36).slice(2,8).toUpperCase();
+document.getElementById('synctime').textContent  = new Date().toLocaleTimeString();
+
+/* ══════════════════════════════════════════════════════════════
+   CSV PARSER
+══════════════════════════════════════════════════════════════ */
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const cols = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ = !inQ; }
+      else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+    cols.push(cur.trim());
+    rows.push(cols);
+  }
+  return rows;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CELL RENDERERS
+══════════════════════════════════════════════════════════════ */
+function renderRank(v) {
+  if (!v) return el('span','—');
+  const s = el('span', v.toUpperCase()); s.className = 'badge badge-rank'; return s;
+}
+function renderRole(v) {
+  if (!v) return el('span','—');
+  const s = el('span', v); s.className = 'badge badge-role'; return s;
+}
+function renderElement(v) {
+  if (!v) return el('span','—');
+  const s = el('span', v.toUpperCase()); s.className = 'badge badge-elem'; return s;
+}
+function renderPerf(v) {
+  const n = parseInt(v) || 0;
+  const max = 5;
+  const wrap = document.createElement('span'); wrap.className = 'perf';
+  for (let i = 0; i < max; i++) {
+    const pip = document.createElement('span');
+    pip.className = 'perf-pip' + (i < n ? ' on' : '');
+    wrap.appendChild(pip);
+  }
+  if (v && isNaN(parseInt(v))) { wrap.textContent = ''; wrap.appendChild(el('span',v)); }
+  return wrap;
+}
+function renderActivity(v) {
+  if (!v) return el('span','—');
+  const pct = Math.min(100, Math.max(0, parseInt(v) || 50));
+  const wrap = document.createElement('span');
+  wrap.style.display = 'inline-flex'; wrap.style.alignItems = 'center'; wrap.style.gap = '6px';
+  const bar = document.createElement('span'); bar.className = 'act-bar';
+  bar.style.setProperty('--w', pct+'%'); bar.style.width = pct+'%';
+  const txt = el('span', v); txt.style.fontFamily = "'Share Tech Mono',monospace"; txt.style.fontSize = '0.6rem'; txt.style.color = 'var(--tan)';
+  wrap.appendChild(bar); wrap.appendChild(txt);
+  return wrap;
+}
+function renderEligible(v) {
+  const vl = (v||'').toLowerCase();
+  const s = el('span', v || '—');
+  if (vl === 'yes' || vl === 'true' || vl === 'eligible') s.className = 'elig-yes';
+  else s.className = 'elig-no';
+  return s;
+}
+function renderStrikes(v) {
+  const n = parseInt(v) || 0;
+  const max = 3;
+  const wrap = document.createElement('span'); wrap.className = 'strike-wrap';
+  for (let i = 0; i < max; i++) {
+    const pip = document.createElement('span');
+    pip.className = 'strike-pip' + (i < n ? ' on' : '');
+    wrap.appendChild(pip);
+  }
+  return wrap;
+}
+function renderStatus(v) {
+  const vl = (v||'').toLowerCase().trim();
+  const s = el('span', v || '—');
+  s.className = 'sdot ';
+  if (!v || vl === 'inactive') s.className += 's-inactive';
+  else if (vl.includes('kia') || vl.includes('dead') || vl.includes('deceas')) s.className += 's-kia';
+  else if (vl.includes('mia')) s.className += 's-mia';
+  else if (vl.includes('loa') || vl.includes('leave')) s.className += 's-loa';
+  else if (vl.includes('reserve') || vl.includes('standby')) s.className += 's-reserve';
+  else s.className += 's-active';
+  return s;
+}
+function renderThreat(v) {
+  const vl = (v||'').toLowerCase().trim();
+  const s = el('span', v || 'UNKNOWN'); s.className = 'threat ';
+  if (vl.includes('critical') || vl === 'extreme') s.className += 't-critical';
+  else if (vl.includes('high'))   s.className += 't-high';
+  else if (vl.includes('med'))    s.className += 't-medium';
+  else if (vl.includes('low'))    s.className += 't-low';
+  else if (vl === 'none' || vl === 'neutralised' || vl === 'neutralized') s.className += 't-none';
+  else s.className += 't-unknown';
+  return s;
+}
+function renderClearance(v) {
+  if (!v) return el('span','—');
+  const s = el('span', v.toUpperCase()); s.className = 'badge badge-clear'; return s;
+}
+function renderRedacted(v) {
+  const vl = (v||'').toLowerCase();
+  if (!v || vl.includes('redact') || vl === '—' || vl === '-') {
+    const s = el('span','⬛ REDACTED'); s.className = 'badge badge-redacted'; return s;
+  }
+  const s = el('span', v); s.className = 'badge badge-redacted'; return s;
+}
+function renderPriority(v) {
+  const n = parseInt(v) || 0;
+  const wrap = document.createElement('span'); wrap.className = 'priority-wrap';
+  const dot = document.createElement('span'); dot.className = 'pri-dot pri-' + Math.min(n, 5);
+  wrap.appendChild(dot);
+  wrap.appendChild(el('span', v || '—'));
+  return wrap;
+}
+function renderCode(v) {
+  if (!v) return el('span','—');
+  const s = el('span', v); s.className = 'charge-code'; return s;
+}
+function renderNotes(v) {
+  if (!v) return el('span','—');
+  const td = document.createElement('span');
+  td.style.whiteSpace = 'normal'; td.style.maxWidth = '340px';
+  td.style.display = 'inline-block'; td.style.lineHeight = '1.4';
+  td.style.fontSize = '0.84rem';
+  td.textContent = v;
+  return td;
+}
+
+function el(tag, text) {
+  const e = document.createElement(tag);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+/* Pick renderer by header name */
+function getRenderer(headerName) {
+  const hl = (headerName||'').toLowerCase();
+  for (const [key, fn] of Object.entries(RENDERERS)) {
+    if (hl.includes(key)) return fn;
+  }
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FETCH
+══════════════════════════════════════════════════════════════ */
+async function fetchTab(tabId) {
+  const cfg = TABS[tabId];
+  const csvUrl = `${BASE}?gid=${cfg.gid}&single=true&output=csv`;
+  const url = PROXY + encodeURIComponent(csvUrl);
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const text = await resp.text();
+    if (text.includes('Host not in allowlist')) throw new Error('PROXY BLOCKED');
+    const parsed = parseCSV(text);
+    if (!parsed.length) throw new Error('EMPTY DATA SET');
+
+    const headers = parsed[0];
+    const rows = parsed.slice(1).filter(r => r.some(c => c.trim()));
+
+    const d = state.data[tabId];
+    d.headers = headers;
+    d.rows = rows;
+    d.filtered = rows;
+    d.status = 'ok';
+
+    document.getElementById(`nc-${tabId}`).textContent = rows.length;
+    document.getElementById('load-'+tabId).style.display = 'none';
+    document.getElementById('tscroll-'+tabId).style.display = 'block';
+
+    buildHead(tabId);
+    applyFilters();
+    updateTotalCount();
+
+  } catch(e) {
+    state.data[tabId].status = 'error';
+    document.getElementById('load-'+tabId).style.display = 'none';
+    document.getElementById('nc-'+tabId).textContent = '!';
+    document.getElementById('err-'+tabId).innerHTML = `
+      <div class="err-box">
+        <strong>⬛ DATALINK FAILURE — ${cfg.label}</strong>
+        ERROR: ${e.message}<br>
+        — Ensure the sheet tab is published: <em>File → Share → Publish to web → select tab → CSV</em><br>
+        — CORS proxy may be rate-limited; reload to retry<br><br>
+        <a href="${BASE}?gid=${cfg.gid}&single=true&output=csv" target="_blank">▶ ATTEMPT DIRECT ACCESS</a>
+      </div>`;
+  }
+}
+
+function updateTotalCount() {
+  let total = 0;
+  Object.values(state.data).forEach(d => { total += d.rows.length; });
+  document.getElementById('total-count').textContent = total || '—';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BUILD TABLE HEAD (once per tab)
+══════════════════════════════════════════════════════════════ */
+function buildHead(tabId) {
+  const d = state.data[tabId];
+  const thead = document.getElementById('thead-'+tabId);
+  if (thead.children.length) return;
+  const tr = document.createElement('tr');
+  d.headers.forEach((h, ci) => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    th.addEventListener('click', () => {
+      if (d.sortCol === ci) d.sortDir *= -1; else { d.sortCol = ci; d.sortDir = 1; }
+      thead.querySelectorAll('th').forEach(t => t.classList.remove('sa','sd'));
+      th.classList.add(d.sortDir === 1 ? 'sa' : 'sd');
+      renderRows(tabId);
+    });
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER ROWS
+══════════════════════════════════════════════════════════════ */
+function renderRows(tabId) {
+  const d = state.data[tabId];
+  if (d.status !== 'ok') return;
+
+  let rows = [...d.filtered];
+
+  // Sort
+  if (d.sortCol >= 0) {
+    rows.sort((a, b) => {
+      const av = (a[d.sortCol]||'').toLowerCase();
+      const bv = (b[d.sortCol]||'').toLowerCase();
+      const an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) return (an - bn) * d.sortDir;
+      return av < bv ? -d.sortDir : av > bv ? d.sortDir : 0;
+    });
+  }
+
+  const tbody = document.getElementById('tbody-'+tabId);
+  const empty = document.getElementById('empty-'+tabId);
+  const scroll = document.getElementById('tscroll-'+tabId);
+
+  tbody.innerHTML = '';
+
+  if (rows.length === 0) {
+    empty.style.display = 'block';
+    scroll.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  scroll.style.display = 'block';
+
+  rows.forEach((row, ri) => {
+    const tr = document.createElement('tr');
+    tr.style.animationDelay = `${Math.min(ri * 0.012, 0.35)}s`;
+
+    // Flag KIA/MIA rows
+    const rowText = row.join(' ').toLowerCase();
+    if (/\b(kia|killed|dead|deceased|mia)\b/.test(rowText)) tr.classList.add('flagged');
+
+    d.headers.forEach((h, ci) => {
+      const td = document.createElement('td');
+      const v = (row[ci] || '').trim();
+      const renderer = getRenderer(h);
+      if (renderer) {
+        const rendered = renderer(v);
+        td.appendChild(rendered);
+      } else {
+        td.textContent = v || '—';
+      }
+      // Wide text columns
+      const hl = h.toLowerCase();
+      if (hl.includes('note') || hl.includes('defin') || hl.includes('packet') || hl.includes('punish')) {
+        td.classList.add('wrap');
+      }
+      tr.appendChild(td);
+    });
+
+    // Click to open drawer
+    tr.addEventListener('click', () => openDrawer(d.headers, row, tabId));
+    tbody.appendChild(tr);
+  });
+
+  // Update stats
+  document.getElementById('st-total').textContent = d.rows.length;
+  document.getElementById('st-shown').textContent = rows.length;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FILTERS
+══════════════════════════════════════════════════════════════ */
+function applyFilters() {
+  const tabId = state.activeTab;
+  const d = state.data[tabId];
+  if (d.status !== 'ok') return;
+
+  const q    = document.getElementById('search').value.toLowerCase().trim();
+  const colF = document.getElementById('fsel').value;
+  const valF = document.getElementById('fval').value.toLowerCase().trim();
+
+  d.filtered = d.rows.filter(row => {
+    const mQ = !q || row.some(c => (c||'').toLowerCase().includes(q));
+    const mV = !valF || (colF !== '' && (row[+colF]||'').toLowerCase() === valF);
+    return mQ && mV;
+  });
+
+  renderRows(tabId);
+}
+
+function refreshFilters() {
+  const d = state.data[state.activeTab];
+  const fsel = document.getElementById('fsel');
+  const fval = document.getElementById('fval');
+  document.getElementById('search').value = '';
+  fsel.innerHTML = '<option value="">— ALL COLUMNS —</option>';
+  fval.innerHTML = '<option value="">— ALL VALUES —</option>';
+  if (d.status !== 'ok') return;
+  d.headers.forEach((h, i) => {
+    const o = document.createElement('option'); o.value = i; o.textContent = h.toUpperCase();
+    fsel.appendChild(o);
+  });
+}
+
+document.getElementById('fsel').addEventListener('change', function() {
+  const d = state.data[state.activeTab];
+  const fval = document.getElementById('fval');
+  fval.innerHTML = '<option value="">— ALL VALUES —</option>';
+  if (!this.value || d.status !== 'ok') return;
+  const ci = +this.value;
+  [...new Set(d.rows.map(r => (r[ci]||'').trim()))].filter(Boolean).sort().forEach(v => {
+    const o = document.createElement('option'); o.value = v.toLowerCase(); o.textContent = v.toUpperCase();
+    fval.appendChild(o);
+  });
+  applyFilters();
+});
+document.getElementById('fval').addEventListener('change', applyFilters);
+document.getElementById('search').addEventListener('input', applyFilters);
+
+/* ══════════════════════════════════════════════════════════════
+   TAB SWITCHING
+══════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
+    state.activeTab = tabId;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-'+tabId));
+    refreshFilters();
+    const d = state.data[tabId];
+    if (d.status === 'ok') {
+      d.filtered = d.rows;
+      renderRows(tabId);
+    } else {
+      document.getElementById('st-total').textContent = '—';
+      document.getElementById('st-shown').textContent = '—';
+    }
+  });
+});
+
+/* ══════════════════════════════════════════════════════════════
+   ROW DETAIL DRAWER
+══════════════════════════════════════════════════════════════ */
+function openDrawer(headers, row, tabId) {
+  const label = TABS[tabId].label;
+  document.getElementById('dh-title').textContent = label + ' — PERSONNEL FILE';
+
+  // Use first non-empty cell as subtitle
+  const name = row.find(c => c.trim()) || 'UNKNOWN';
+  document.getElementById('dh-sub').textContent = `REF: ${name.toUpperCase()}`;
+
+  const body = document.getElementById('drawer-body');
+  body.innerHTML = '';
+
+  // Group fields into sections of ~4
+  const chunkSize = 5;
+  for (let i = 0; i < headers.length; i += chunkSize) {
+    const sec = document.createElement('div'); sec.className = 'drawer-section';
+    const title = document.createElement('div'); title.className = 'drawer-section-title';
+    title.textContent = i === 0 ? 'PRIMARY DATA' : i <= chunkSize ? 'SERVICE RECORD' : i <= chunkSize*2 ? 'SUPPLEMENTARY' : 'ADDITIONAL';
+    sec.appendChild(title);
+
+    for (let j = i; j < Math.min(i + chunkSize, headers.length); j++) {
+      const h = headers[j];
+      const v = (row[j] || '').trim();
+      const field = document.createElement('div'); field.className = 'drawer-field';
+      const key = document.createElement('div'); key.className = 'df-key'; key.textContent = h;
+      const val = document.createElement('div'); val.className = 'df-val';
+      const renderer = getRenderer(h);
+      if (renderer) {
+        val.appendChild(renderer(v));
+      } else {
+        const hl = h.toLowerCase();
+        if (hl.includes('note') || hl.includes('defin') || hl.includes('packet') || hl.includes('punish')) {
+          val.className += ' notes'; val.textContent = v || '—';
+        } else if (hl.includes('date') || hl.includes('promo') || hl.includes('join') || hl.includes('opened') || hl.includes('number')) {
+          val.className += ' mono'; val.textContent = v || '—';
+        } else {
+          val.textContent = v || '—';
+        }
+      }
+      field.appendChild(key); field.appendChild(val);
+      sec.appendChild(field);
+    }
+    body.appendChild(sec);
+  }
+
+  document.getElementById('backdrop').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('backdrop').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+document.getElementById('backdrop').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+/* ══════════════════════════════════════════════════════════════
+   INIT — fetch all tabs with stagger
+══════════════════════════════════════════════════════════════ */
+Object.keys(TABS).forEach((tabId, i) => {
+  setTimeout(() => fetchTab(tabId), i * 250);
+});
+</script>
+</body>
+</html>
